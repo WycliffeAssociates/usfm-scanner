@@ -145,8 +145,8 @@ def listen_for_messages():
                             print(verse['message'])
                 print(f"Done scanning {user}/{repo}")
                 if len(logger.result.results) > 0:
-                    output_path = f"/{user}/{repo}.json"
-                    upload_to_blob_storage(logger.result.to_json(), "scan-results", output_path")
+                    output_path = f"{user}/{repo}.json"
+                    upload_to_blob_storage(logger.result.to_json(), "scan-results", output_path)
                     uploaded_url = f"{output_prefix}/{output_path}"
                     with client.get_topic_sender(resultTopicName) as sender:
                         sender.send_messages(ServiceBusMessage(json.dumps({"User": user, "Repo": repo, "RepoId": id, "ResultsFileUrl": uploaded_url})))

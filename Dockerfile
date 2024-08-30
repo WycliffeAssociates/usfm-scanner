@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy the requirements.txt file to the container
 COPY requirements.txt .
-COPY usfmtools .
+COPY usfmtools /app/usfmtools
 COPY listener.py .
 
 # Install the Python dependencies
