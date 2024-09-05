@@ -130,7 +130,7 @@ def listen_for_messages():
                     try:
                         scan_dir(tempdir, logger)
                     except Exception as e:
-                        receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}" error_description=e.message)
+                        receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}", error_description=str(e))
                         print(f"Error scanning {user}/{repo}: {e}")
                     finally:
                         shutil.rmtree(tempdir)
