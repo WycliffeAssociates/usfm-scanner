@@ -35,7 +35,7 @@ class ScanResult:
     def to_json(self):
         return json.dumps(self.results)
 
-class Logger:
+class ResultsListener:
 
     def __init__(self, callback: Optional[Callable[[str], None]] = None):
         self.result = ScanResult()
@@ -64,13 +64,13 @@ class Logger:
         if self.progress_callback:
             self.progress_callback(msg)
 
-def scan_dir(directory:str, logger: Logger):
+def scan_dir(directory:str, listener: ResultsListener):
     verifyUSFM.config = {
         "source_dir": directory,
         "compare_dir": None,
     }
     verifyUSFM.state = verifyUSFM.State()
-    verifyUSFM.listener = logger
+    verifyUSFM.listener = listener
     verifyUSFM.verifyDir(directory)
         
 
@@ -115,7 +115,7 @@ def listen_for_messages():
 
                 repourl = f"{parsedUrl.scheme}://{parsedUrl.netloc}/api/v1/repos/{user}/{repo}/archive/{defaultBranch}.zip"
                 # Get a temporary dir
-                logger = Logger()
+                logger = ResultsListener()
                 logger.progress_callback = lambda msg: (receiver.renew_message_lock(message), None)[1]
                 with tempfile.TemporaryDirectory() as tempdir:
                     with tempfile.NamedTemporaryFile() as downloadFile:
@@ -127,8 +127,13 @@ def listen_for_messages():
                             repoZip.extractall(tempdir)
 
                     # Unzip repo file
-                    scan_dir(tempdir, logger)
-                    shutil.rmtree(tempdir)
+                    try:
+                        scan_dir(tempdir, logger)
+                    except Exception as e:
+                        receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}" error_description=e.message)
+                        print(f"Error scanning {user}/{repo}: {e}")
+                    finally:
+                        shutil.rmtree(tempdir)
                 print("Results")
                 for book, chapters in logger.result.results.items():
                     print(f"{book}")
