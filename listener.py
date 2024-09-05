@@ -43,32 +43,26 @@ class Logger:
     referenceRegex = r"([A-Z1-3]{2,3})\s(\d+)(:(\d+))?"
     sourceFileRegex = r"([A-Z1-3]{2,3})\.usfm"
     progress_lock = threading.Lock()
-    progress = ""
     progress_callback: Optional[Callable[[str], None]]
     result: ScanResult
-    def event_generate(self, event:str, msg:str, when:str):
-        if event == "<<ScriptProgress>>":
-            if self.progress_callback:
-                self.progress_callback(msg)
-            return
-        elif event == "<<ScriptMessage>>":
-            return
-        elif event == "<<Error>>":
-            matches = re.findall(self.referenceRegex, msg)
-            if (len(matches) > 0):
-                book = matches[0][0]
-                chapter = matches[0][1]
-                verse = matches[0][3]
-                self.result.add_error(book, chapter, verse, msg)
-            else:
-                matches = re.findall(self.sourceFileRegex, msg)
-                if (len(matches) > 0):
-                    book = matches[0]
-                    self.result.add_error(book, "Unknown", "Unknown", msg)
-                else:
-                    self.result.add_error("Unknown", "Unknown", "Unknown", msg)
+    def error(self, msg:str, errorId:float):
+        matches = re.findall(self.referenceRegex, msg)
+        if (len(matches) > 0):
+            book = matches[0][0]
+            chapter = matches[0][1]
+            verse = matches[0][3]
+            self.result.add_error(book, chapter, verse, msg)
         else:
-            print(f"{when}: {event} {msg}")
+            matches = re.findall(self.sourceFileRegex, msg)
+            if (len(matches) > 0):
+                book = matches[0]
+                self.result.add_error(book, "Unknown", "Unknown", msg)
+            else:
+                self.result.add_error("Unknown", "Unknown", "Unknown", msg)
+
+    def progress(self, msg:str):
+        if self.progress_callback:
+            self.progress_callback(msg)
 
 def scan_dir(directory:str, logger: Logger):
     verifyUSFM.config = {
@@ -76,8 +70,7 @@ def scan_dir(directory:str, logger: Logger):
         "compare_dir": None,
     }
     verifyUSFM.state = verifyUSFM.State()
-    verifyUSFM.suppress[9] = True
-    verifyUSFM.gui = logger
+    verifyUSFM.listener = logger
     verifyUSFM.verifyDir(directory)
         
 
