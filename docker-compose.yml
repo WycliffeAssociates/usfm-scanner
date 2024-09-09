@@ -9,5 +9,3 @@ services:
       - Azure_ServiceBus_Connection_String=${Azure_ServiceBus_Connection_String}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - OUTPUT_PREFIX= ${OUTPUT_PREFIX}
-
-    command: ["python", "listener.py"]

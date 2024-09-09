@@ -94,8 +94,9 @@ def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> No
 
 
 def listen_for_messages():
-    logging.basicConfig(level=logging.INFO)
+    #logging.getLogger().setLevel(logging.DEBUG)
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
     topicName = "WACSEvent"
     resultTopicName = "LintingResult"
     subscriptionName = "LarrysScripts"
@@ -113,6 +114,7 @@ def listen_for_messages():
                 user = parsed["User"]
                 repo = parsed["Repo"]
                 id = parsed["RepoId"]
+                success = True
 
                 logger.info(f"Scanning {user}/{repo}")
 
@@ -123,6 +125,10 @@ def listen_for_messages():
                 with tempfile.TemporaryDirectory() as tempdir:
                     with tempfile.NamedTemporaryFile() as downloadFile:
                         response = requests.get(repourl, stream=True)
+                        if response.status_code != 200:
+                            logger.error(f"Failed to download {user}/{repo}: {response.status_code}")
+                            receiver.dead_letter_message(message, reason=f"Failed to download {user}/{repo}", error_description=f"HTTP status code {response.status_code}")
+                            continue
                         for chunk in response.iter_content(chunk_size=128):
                             downloadFile.write(chunk)
                         downloadFile.flush()
@@ -134,9 +140,13 @@ def listen_for_messages():
                         scan_dir(tempdir, result_logger)
                     except Exception as e:
                         receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}", error_description=str(e))
-                        logger.error(f"Error scanning {user}/{repo}: {e}")
+                        logger.error(f"Error scanning {user}/{repo}: {e}", stack_info=True)
+                        #logger.exception(e)
+                        success = False
                     finally:
                         shutil.rmtree(tempdir)
+                if not success:
+                    continue
                 logger.info(f"Scanning {user}/{repo} complete")
                 if len(result_logger.result.results) > 0:
                     output_path = f"{user}/{repo}.json"
