@@ -15,6 +15,7 @@ import requests
 import shutil
 import logging
 from typing import Optional, Callable
+from azure.monitor.opentelemetry import configure_azure_monitor
 
 class ScanResult:
     def __init__(self):
@@ -94,7 +95,8 @@ def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> No
 
 
 def listen_for_messages():
-    #logging.getLogger().setLevel(logging.DEBUG)
+    if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING") != None:
+        configure_azure_monitor()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     topicName = "WACSEvent"

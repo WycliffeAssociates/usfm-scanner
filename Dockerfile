@@ -8,8 +8,8 @@ WORKDIR /app
 COPY requirements.txt .
 COPY usfmtools /app/usfmtools
 COPY listener.py .
-COPY entry_with_otel.sh .
-RUN chmod +x entry_with_otel.sh
+COPY entry.sh .
+RUN chmod +x entry.sh
 
 
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
@@ -17,7 +17,5 @@ ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 # Install the Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the listener.py file to the container
-
 # Run the listener.py script when the container starts
-CMD ["./entry_with_otel.sh"]
+CMD ["./entry.sh"]
