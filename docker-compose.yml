@@ -1,10 +1,11 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: registry.walink.org/wa/usfm-scanner-worker
     environment: 
       - Azure_ServiceBus_Connection_String=${Azure_ServiceBus_Connection_String}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - OUTPUT_PREFIX=${OUTPUT_PREFIX}
       - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_EXPORTER_OLTP_INSECURE=${OTEL_EXPORTER_OLTP_INSECURE}
+      - OTEL_EXPORTER_OTLP_PROTOCOL=${OTEL_EXPORTER_OTLP_PROTOCOL}

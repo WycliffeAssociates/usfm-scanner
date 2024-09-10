@@ -95,7 +95,8 @@ def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> No
 
 
 def listen_for_messages():
-    if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING") != None:
+    app_insights_key = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")
+    if app_insights_key != None and app_insights_key != "":
         configure_azure_monitor()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
