@@ -21,7 +21,7 @@ class ScanResult:
     def __init__(self):
         self.results: dict = {}
 
-    def add_error(self, book, chapter, verse, message):
+    def add_error(self, book: str, chapter: str, verse: str, message: str, errorId: str):
         if book == "":
             book = "Unknown"
         if chapter == "":
@@ -33,7 +33,7 @@ class ScanResult:
             self.results[book] = {}
         if chapter not in self.results[book]:
             self.results[book][chapter] = []
-        self.results[book][chapter].append({"verse": verse, "message": message})
+        self.results[book][chapter].append({"verse": verse, "message": message, "errorId": errorId})
     def to_json(self):
         return json.dumps(self.results)
 
@@ -53,14 +53,14 @@ class ResultsListener:
             book = matches[0][0]
             chapter = matches[0][1]
             verse = matches[0][3]
-            self.result.add_error(book, chapter, verse, msg)
+            self.result.add_error(book, chapter, verse, msg, str(errorId))
         else:
             matches = re.findall(self.sourceFileRegex, msg)
             if (len(matches) > 0):
                 book = matches[0]
-                self.result.add_error(book, "Unknown", "Unknown", msg)
+                self.result.add_error(book, "Unknown", "Unknown", msg, str(errorId))
             else:
-                self.result.add_error("Unknown", "Unknown", "Unknown", msg)
+                self.result.add_error("Unknown", "Unknown", "Unknown", msg, str(errorId))
 
     def progress(self, msg:str):
         if self.progress_callback:
