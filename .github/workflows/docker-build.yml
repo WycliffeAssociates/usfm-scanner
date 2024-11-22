@@ -1,0 +1,67 @@
+name: Build USFM Scanner Docker Image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  #build and publish image
+  Build-Image:
+    name: Build image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+            submodules: true
+      - uses: docker/setup-qemu-action@v2      
+      - uses: docker/setup-buildx-action@v2
+
+      - name: Build image with buildx
+        uses: docker/build-push-action@v3
+        with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  Push-Image:
+    name: Push images if this is a branch
+    runs-on: ubuntu-latest
+    needs: [Build-Image]
+    if: ${{ contains(fromJson('["push"]'), github.event_name) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: FranzDiebold/github-env-vars-action@v2.7.0
+      - uses: docker/setup-qemu-action@v2      
+      - uses: docker/setup-buildx-action@v2
+      - name: Load secret
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DOCKER_HUB_USER: "op://DevOps/dockerhub-adminwa-token/username"
+          DOCKER_HUB_TOKEN: "op://DevOps/dockerhub-adminwa-token/credential"
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_HUB_USER }}
+          password: ${{ env.DOCKER_HUB_TOKEN }}
+      - name: Set docker tags
+        run: |
+          echo "TAG_SHA=wycliffeassociates/usfm-scanner:$GITHUB_SHA" >> $GITHUB_ENV && \
+          echo "TAG_BRANCH=wycliffeassociates/usfm-scanner:$CI_REF_NAME_SLUG" >> $GITHUB_ENV && \
+          echo "TAG_LATEST=wycliffeassociates/usfm-scanner:latest" >> $GITHUB_ENV
+
+      - name: Build and conditional push API image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: |
+            ${{ env.TAG_SHA }}
+            ${{ env.TAG_BRANCH }}
+            ${{ env.TAG_LATEST }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
