@@ -1,3 +1,3 @@
 [submodule "usfmtools"]
 	path = usfmtools
-	url = git@github.com:Bible-Translation-Tools/usfm-tools.git
+	url = https://github.com/Bible-Translation-Tools/usfm-tools.git
