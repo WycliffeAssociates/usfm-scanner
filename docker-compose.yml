@@ -1,6 +1,6 @@
 services:
   app:
-    image: registry.walink.org/wa/usfm-scanner-worker:${DEPLOY_ENV}
+    image: wycliffeassociates/usfm-scanner:${DEPLOY_ENV}
     environment: 
       - Azure_ServiceBus_Connection_String=${Azure_ServiceBus_Connection_String}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
