@@ -8,7 +8,7 @@ import os
 import tempfile
 import urllib.request
 from urllib.parse import urlparse
-from azure.servicebus import ServiceBusClient, ServiceBusMessage
+from azure.servicebus import ServiceBusClient, ServiceBusMessage, AutoLockRenewer
 from azure.storage.blob import BlobServiceClient
 import zipfile
 import requests
@@ -108,9 +108,12 @@ def listen_for_messages():
     if not connstr:
         logger.error("No Service Bus connection string found")
         exit(1)
+    renewer = AutoLockRenewer()
     with ServiceBusClient.from_connection_string(connstr) as client:
         with client.get_subscription_receiver(topicName, subscriptionName, uamqp_transport=True) as receiver:
             for message in receiver:
+                # Register the autolocker for 7200 seconds which is 2 hours
+                renewer.register(receiver, message, max_lock_renewal_duration=7200)
                 parsed = json.loads(str(message))
                 parsedUrl = urlparse(parsed["RepoHtmlUrl"])
                 defaultBranch = parsed["DefaultBranch"]
@@ -124,7 +127,7 @@ def listen_for_messages():
                 repourl = f"{parsedUrl.scheme}://{parsedUrl.netloc}/api/v1/repos/{user}/{repo}/archive/{defaultBranch}.zip"
                 # Get a temporary dir
                 result_logger = ResultsListener()
-                result_logger.progress_callback = lambda msg: (receiver.renew_message_lock(message), None)[1]
+                #result_logger.progress_callback = lambda msg: (receiver.renew_message_lock(message), None)[1]
                 with tempfile.TemporaryDirectory() as tempdir:
                     with tempfile.NamedTemporaryFile() as downloadFile:
                         response = requests.get(repourl, stream=True)
@@ -144,7 +147,6 @@ def listen_for_messages():
                     except Exception as e:
                         receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}", error_description=str(e))
                         logger.error(f"Error scanning {user}/{repo}: {e}", stack_info=True)
-                        #logger.exception(e)
                         success = False
                     finally:
                         shutil.rmtree(tempdir)
