@@ -72,6 +72,7 @@ def scan_dir(directory:str, listener: ResultsListener):
         "compare_dir": None,
     }
     verifyUSFM.state = verifyUSFM.State()
+    verifyUSFM.std_titles = []
     verifyUSFM.listener = listener
     verifyUSFM.verifyDir(directory)
         
