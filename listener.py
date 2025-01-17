@@ -109,6 +109,7 @@ def listen_for_messages():
     if not connstr:
         logger.error("No Service Bus connection string found")
         exit(1)
+    raise_errors = os.environ.get("DEBUG_RAISE_ERRORS", "False")
     renewer = AutoLockRenewer()
     with ServiceBusClient.from_connection_string(connstr) as client:
         with client.get_subscription_receiver(topicName, subscriptionName, uamqp_transport=True) as receiver:
@@ -149,6 +150,8 @@ def listen_for_messages():
                         receiver.dead_letter_message(message, reason=f"Error scanning {user}/{repo}", error_description=str(e))
                         logger.error(f"Error scanning {user}/{repo}: {e}", stack_info=True)
                         success = False
+                        if raise_errors == "True":
+                            raise e
                     finally:
                         shutil.rmtree(tempdir)
                 if not success:
