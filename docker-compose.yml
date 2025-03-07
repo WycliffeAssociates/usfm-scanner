@@ -1,6 +1,7 @@
 services:
   app:
     image: wycliffeassociates/usfm-scanner:${DEPLOY_ENV}
+    restart: unless-stopped
     environment: 
       - Azure_ServiceBus_Connection_String=${Azure_ServiceBus_Connection_String}
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
