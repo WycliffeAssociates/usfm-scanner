@@ -6,7 +6,23 @@ import re
 import usfmtools.src.verifyUSFM as verifyUSFM
 import os
 import tempfile
-import urllib.request
+from azure.monitor.opentelemetry import configure_azure_monitor
+
+# Initialize OpenTelemetry / Azure Monitor as early as possible so that
+# instrumentation can wrap Azure SDKs and other libraries imported later.
+if os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    try:
+        configure_azure_monitor()
+    except Exception:
+        # If OTEL setup fails, continue without crashing the listener.
+        pass
+    # Try to auto-instrument `requests` library for outgoing HTTP calls.
+    try:
+        from opentelemetry.instrumentation.requests import RequestsInstrumentor
+        RequestsInstrumentor().instrument()
+    except Exception:
+        # best-effort only
+        pass
 from urllib.parse import urlparse
 from azure.servicebus import ServiceBusClient, ServiceBusMessage, AutoLockRenewer
 from azure.storage.blob import BlobServiceClient
@@ -15,7 +31,6 @@ import requests
 import shutil
 import logging
 from typing import Optional, Callable
-from azure.monitor.opentelemetry import configure_azure_monitor
 
 class ScanResult:
     def __init__(self):
@@ -65,6 +80,17 @@ class ResultsListener:
     def progress(self, msg:str):
         if self.progress_callback:
             self.progress_callback(msg)
+class FakeSaidWords:
+    def addWord(self, word: str):
+        pass
+
+class FakeManifestYaml:
+    def addProject(self, project):
+        pass
+    def load(self, directory: str):
+        pass
+    def save(self):
+        pass
 
 def scan_dir(directory:str, listener: ResultsListener):
     verifyUSFM.config = {
@@ -74,7 +100,11 @@ def scan_dir(directory:str, listener: ResultsListener):
     verifyUSFM.state = verifyUSFM.State()
     verifyUSFM.std_titles = []
     verifyUSFM.listener = listener
+    verifyUSFM.saidwords = FakeSaidWords()
+    verifyUSFM.manifestyaml = FakeManifestYaml()
+    verifyUSFM.suppress = [False] * 13
     verifyUSFM.verifyDir(directory)
+    print(verifyUSFM.suppress)
         
 
 def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> None:
@@ -96,9 +126,6 @@ def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> No
 
 
 def listen_for_messages():
-    app_insights_key = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")
-    if app_insights_key != None and app_insights_key != "":
-        configure_azure_monitor()
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     topicName = "WACSEvent"
@@ -112,7 +139,7 @@ def listen_for_messages():
     raise_errors = os.environ.get("DEBUG_RAISE_ERRORS", "False")
     renewer = AutoLockRenewer()
     with ServiceBusClient.from_connection_string(connstr) as client:
-        with client.get_subscription_receiver(topicName, subscriptionName, uamqp_transport=True) as receiver:
+        with client.get_subscription_receiver(topicName, subscriptionName) as receiver:
             for message in receiver:
                 # Register the autolocker for 7200 seconds which is 2 hours
                 renewer.register(receiver, message, max_lock_renewal_duration=7200)
@@ -164,6 +191,7 @@ def listen_for_messages():
                     with client.get_topic_sender(resultTopicName) as sender:
                         sender.send_messages(ServiceBusMessage(json.dumps({"User": user, "Repo": repo, "RepoId": id, "ResultsFileUrl": uploaded_url})))
                 receiver.complete_message(message)
+                logger.info(f"Completed processing message for {user}/{repo}")
 
 if __name__ == "__main__":
     listen_for_messages()
