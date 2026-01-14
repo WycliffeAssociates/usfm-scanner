@@ -1,0 +1,130 @@
+Error,Description
+0.1,Mixed case word in a single occurrence.
+0.2,Mixed case words occurring more than once each.
+0.3,Too many mixed case words; reporting canceled.
+0.4,Mixed case word
+0.5,Mixed case words occur more than once each
+0.6,Too many mixed case words; reporting canceled.
+1,Empty verse.
+2,Verse fragment.
+3,Verse is entirely ASCII.
+3.5,Verse may be untranslated (based on words in common).
+4,Long chunk of verses.
+5,Book title matches English name.
+6,Inconsistent chapter titling.
+7,Some chapters do not have chapter labels.
+8,Chapter usually has a specific number of verses.
+9,Mismatched footnote tags.
+10,Mismatched endnote tags.
+11,File may be empty or open in another program.
+12,Incorrect number of chapters in the book.
+13,Missing ID before chapter.
+13.1,Invalid chapter number.
+13.2,Chapter ends with a section heading.
+14,Chapter out of order.
+15,Duplicate chapter.
+16,Missing chapters before the current one.
+17,Missing chapter(s) between references.
+18,Footnote starts before the previous one is terminated.
+19,Endnote starts before the previous one is terminated.
+20,Endnote may break tools like USFM Converter.
+21,Footnote marker not between a valid pair.
+22,Invalid ID.
+23,Duplicate ID.
+24,Back-to-back paragraph/poetry markers.
+25,Paragraph marker after verse marker or empty verse.
+25.1,\nb marker should follow the chapter marker.
+26,Punctuation missing at the end of a paragraph.
+26.1,Punctuation missing at the end of a paragraph before a reference.
+27,Useless paragraph marker before a section marker.
+28,Useless poetry marker before a section marker.
+29,\b marker used before or after a section heading.
+29.5,Back-to-back section markers.
+30,ASCII value in \mt token.
+31,Uppercase book title.
+31.1,Mixed case Roman numerals in a field.
+32,\b marker used before or after titles or headings.
+33,\b marker used outside valid positions.
+34,Problem in verse range near a reference.
+35,Missing ID before verse.
+36,Missing chapter tag.
+37,Need paragraph marker before verse.
+38,Need poetry or paragraph marker after an acrostic heading.
+38.5,Section heading not followed by a paragraph marker.
+39,Verse out of order.
+40,Duplicate verse number.
+41,Missing verse between references.
+41.1,Missing multiple verses between references.
+42,Non-standard chapter label.
+43,Probable chapter:verse reference belongs in a footnote.
+43.1,Bracket or parentheses in a verse often footnoted.
+43.2,Optional text or untagged footnote.
+44,First word of a paragraph not capitalized.
+44.1,First word in a sentence not capitalized.
+45,Check punctuation at a reference.
+46,Untagged probable footnote.
+47,Repeated punctuation.
+48,Space before phrase-ending mark.
+49,Free-floating mark in text.
+50,Punctuation outside a quote mark.
+51,Repeated quotes in text.
+52,Word-medial punctuation.
+52.1,Forward slash in text.
+52.2,Backslash in text.
+52.3,Equals sign in text.
+53,Uncommon or invalid marker.
+54,Missing verse marker or extra text near a reference.
+54.1,Unmarked text before verse
+55,Unresolved translation conflict.
+56,Angle bracket not closed.
+57,BTT Writer artifact in text.
+58,Orphaned punctuation.
+58.1,Text begins with phrase-ending punctuation.
+59,Verse number in text.
+59.1,Possible verse number in text.
+59.2,Likely verse reference in text.
+60,Embedded number in word.
+60.1,Invalid number prefix.
+60.2,Invalid number suffix.
+61,Unsegmented number.
+61.1,Space between digits in text.
+61.2,Invalid leading zero.
+62,Back-to-back markers of the same type.
+62.1,Missing book ID; file cannot be checked.
+63,Unexpected text returned as part of a paragraph token.
+64,Invalid toc3 value.
+64.5,toc3 value does not match book ID.
+65,Orphaned paragraph marker.
+66,Unnumbered verse after a reference.
+67,Invalid USFM token.
+68,Arabic numerals in text.
+69,Missing newline before chapter marker.
+70,Missing space before chapter number.
+71,Missing space after chapter number.
+72,Missing white space before verse marker.
+73,Missing space before verse number.
+73.5,Low paragraph count for a book.
+74,Missing space after verse number.
+75,Straight quotes in text.
+76,Possible section title in a line.
+77,Empty \wj \wj* pair.
+78,Stranded backslash at the end of a line.
+79,Null bytes found in the file.
+79.1,File is entirely null bytes
+80,Incomplete file.
+80.1,Peripheral file not checked
+81,Missing \toc3 tag.
+0,Diagnostic message (preceding token or top of file)
+0.0,Unicode decode error details
+0.7,Sparse section headings detected
+2.5,Translation is long compared to source
+5.1,No book title found
+8.1,Chapter verse count differs from source text
+37.1,Too many missing paragraph markers; reporting canceled
+43.3,Bracket or parens where footnotes are common
+43.4,Optional text or untagged footnote
+73.6,One lone section marked in book
+74.1,USFM file does not start with book ID
+76.1,Possible section title at end of reference
+79.2,File appears to not be UTF-8
+999,Unresolved translation conflict
