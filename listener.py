@@ -3,10 +3,40 @@ sys.path.append('usfmtools/src')
 import threading
 import json
 import re
-import usfmtools.src.verifyUSFM as verifyUSFM
 import os
 import tempfile
 from azure.monitor.opentelemetry import configure_azure_monitor
+
+# Fake ToolsConfigManager to avoid filesystem access issues
+class FakeToolsConfigManager:
+    def get(self, section, option, fallback=""):
+        # Return default values for the options used in listener
+        if section == 'VerifyUSFM':
+            if option == 'source_dir':
+                return ""
+            elif option == 'compare_dir':
+                return ""
+        elif section == 'UsfmWizard' and option == 'version':
+            return "unknown"
+        return fallback
+
+    def getboolean(self, section, option, fallback=False):
+        return fallback
+
+    def get_section(self, section):
+        # Return a fake section proxy
+        class FakeSection:
+            def get(self, option, fallback=""):
+                return fallback
+            def getboolean(self, option, fallback=False):
+                return fallback
+        return FakeSection()
+
+# Patch the module before importing
+sys.modules['usfmtools.src.configmanager'] = type(sys)('configmanager')
+sys.modules['usfmtools.src.configmanager'].ToolsConfigManager = FakeToolsConfigManager
+
+import usfmtools.src.verifyUSFM as verifyUSFM
 
 # Initialize OpenTelemetry / Azure Monitor as early as possible so that
 # instrumentation can wrap Azure SDKs and other libraries imported later.
@@ -104,7 +134,6 @@ def scan_dir(directory:str, listener: ResultsListener):
     verifyUSFM.manifestyaml = FakeManifestYaml()
     verifyUSFM.suppress = [False] * 13
     verifyUSFM.verifyDir(directory)
-    print(verifyUSFM.suppress)
         
 
 def upload_to_blob_storage(data: str, container_name: str, blob_name: str) -> None:
