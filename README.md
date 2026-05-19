@@ -1,5 +1,5 @@
 # usfm-scanner
-
+Deprecated in favor of https://github.com/WycliffeAssociates/USFMScannerNet
 
 
 ## Configuration
